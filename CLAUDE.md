@@ -4,16 +4,43 @@ This file provides context and conventions for AI assistants (such as Claude) wo
 
 ## Project Overview
 
-**Motu** is a new project under the `jabbaboth` GitHub organization. The repository is in its initial setup phase.
+**Motu** is a crew management system for a construction/trades business, built under the `jabbaboth` GitHub organization. The system manages approximately 264 jobs, replacing manual Excel-based tracking with a modern web application for crew scheduling, job management, and operational oversight.
 
-> **Note:** This CLAUDE.md should be updated as the project evolves — adding build commands, architecture details, testing instructions, and coding conventions as they are established.
+### Tech Stack
+
+- **Framework:** Next.js 14+ (App Router) with TypeScript
+- **Database:** Airtable (via REST API)
+- **Styling:** Tailwind CSS
+- **Authentication:** NextAuth.js
+- **Deployment:** Vercel
+
+### Key Entities
+
+- **Jobs** — Construction projects with status, client, dates, priority
+- **Crew Members** — Workers with roles, skills, availability, pay rates
+- **Assignments** — Links crew members to jobs on specific dates
 
 ## Repository Structure
 
 ```
 Motu/
-├── CLAUDE.md          # This file — AI assistant guide
-└── (project files)    # To be added as the project develops
+├── ACTION_PLAN.md                     # Project roadmap with three build paths
+├── QUICK_START.md                     # 1-hour getting started guide
+├── CLAUDE.md                          # This file — AI assistant guide
+├── setup-repo.sh                      # Automated directory structure setup
+├── package.json.template              # Pre-configured dependencies
+├── docs/
+│   ├── crew_management_system_requirements.md  # Full requirements & data model
+│   ├── developer_prompt.md            # Brief for hiring devs or prompting AI
+│   ├── implementation_guide.md        # 2-week DIY build plan
+│   └── github_setup_guide.md          # Repo organization & deployment
+├── scripts/
+│   └── import-excel-to-airtable.js    # CSV-to-Airtable data import tool
+└── src/                               # Application code (created during build)
+    ├── app/                           # Next.js App Router pages
+    ├── components/                    # React components
+    ├── lib/                           # Service layer (Airtable API)
+    └── types/                         # TypeScript type definitions
 ```
 
 ## Getting Started
@@ -21,13 +48,22 @@ Motu/
 ### Prerequisites
 
 - Git
+- Node.js 18+
+- An Airtable account
 
 ### Setup
 
 ```bash
 git clone https://github.com/jabbaboth/Motu.git
 cd Motu
+bash setup-repo.sh
+cp .env.local.example .env.local
+# Edit .env.local with your Airtable credentials
+npm install
+npm run dev
 ```
+
+See `QUICK_START.md` for the full getting-started guide.
 
 ## Development Workflow
 
@@ -51,31 +87,35 @@ cd Motu
 
 ## Coding Conventions
 
-> To be defined as the project takes shape. Update this section with:
-> - Language and framework choices
-> - Linting and formatting rules
-> - File and directory naming conventions
-> - Import ordering
-> - Error handling patterns
+- **Language:** TypeScript (strict mode)
+- **Framework:** Next.js 14+ with App Router
+- **Styling:** Tailwind CSS — utility-first, mobile-first responsive design
+- **Linting:** ESLint with `eslint-config-next`
+- **File naming:** kebab-case for files, PascalCase for React components
+- **Import ordering:** React/Next imports, third-party libraries, local modules, types
+- **Error handling:** Try/catch at API boundaries, user-friendly error messages in UI
 
 ## Testing
 
-> To be defined. Update this section with:
-> - Test framework(s) used
-> - How to run tests
-> - Coverage requirements
-> - Test file naming conventions
+> To be defined as the application is built. Planned:
+> - Testing framework: Jest + React Testing Library
+> - Run tests: `npm test`
+> - Test file convention: `*.test.ts` / `*.test.tsx` alongside source files
 
 ## Build & Deploy
 
-> To be defined. Update this section with:
-> - Build commands
-> - CI/CD pipeline details
-> - Deployment targets and procedures
+- **Dev server:** `npm run dev` (localhost:3000)
+- **Build:** `npm run build`
+- **Lint:** `npm run lint`
+- **Deploy:** Vercel (auto-deploys from `main` branch)
+- **CI/CD:** GitHub Actions workflow at `.github/workflows/ci.yml`
 
 ## Key Architectural Decisions
 
-> Document significant architectural choices here as they are made, including rationale and trade-offs.
+1. **Airtable as database** — Chosen for easy setup, visual interface, and built-in API. Migration path to PostgreSQL (Supabase) exists if the system outgrows Airtable.
+2. **Next.js App Router** — Server-side rendering for fast page loads, API routes in the same project for simplicity.
+3. **Service layer pattern** — All Airtable calls go through `src/lib/` service modules, not called directly from components.
+4. **Mobile-first design** — Crew members use phones on job sites, so the UI must work well on small screens.
 
 ## AI Assistant Guidelines
 
