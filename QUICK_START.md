@@ -7,44 +7,48 @@ This guide gets you from zero to a working crew management prototype as fast as 
 ## Step 1: Set Up Airtable (15 minutes)
 
 1. Go to [airtable.com](https://airtable.com) and create a free account
-2. Create a new base called **"Motu Crew Management"**
+2. Create a new base called **"Motukarara Crew Management"**
 3. Create the following tables:
 
 ### Jobs Table
 
 | Field Name | Field Type | Notes |
 |-----------|-----------|-------|
-| Job ID | Auto Number | Primary key |
-| Job Name | Single Line Text | Project/job name |
-| Client | Single Line Text | Client name |
-| Address | Long Text | Job site address |
-| Status | Single Select | Options: `Not Started`, `In Progress`, `On Hold`, `Completed` |
-| Start Date | Date | Planned start |
-| End Date | Date | Planned end |
-| Priority | Single Select | Options: `Low`, `Medium`, `High`, `Urgent` |
-| Notes | Long Text | Additional details |
+| job_id | Auto Number | Primary key |
+| date | Date | Scheduled date |
+| crew_name | Single Select | Options: `Jade`, `Ryan`, `Jamie`, `Hedge & Shelter Trimmer` |
+| full_address | Long Text | Job site address |
+| address_number | Single Line Text | Street number |
+| feeder | Single Select | Options: `MOTU 111`, `MOTU 112`, `MOTU 113`, `MOTU 114` |
+| job_duration_hours | Number (decimal) | Estimated hours |
+| spans | Number | Number of spans |
+| start_time | Single Line Text | Planned start |
+| end_time | Single Line Text | Planned end |
+| status | Single Select | Options: `Pending`, `In Progress`, `Completed` |
+| completion_date | Date | When marked complete |
+| completed_by | Single Line Text | Who completed it |
+| notes | Long Text | Additional details |
+| additional_crews_required | Checkbox | Needs extra crew |
 
-### Crew Members Table
-
-| Field Name | Field Type | Notes |
-|-----------|-----------|-------|
-| Name | Single Line Text | Full name |
-| Role | Single Select | e.g., `Foreman`, `Labourer`, `Operator`, `Subcontractor` |
-| Phone | Phone Number | Contact number |
-| Email | Email | Contact email |
-| Status | Single Select | Options: `Available`, `On Job`, `On Leave`, `Inactive` |
-| Skills | Multiple Select | e.g., `Excavation`, `Concrete`, `Framing`, `Roofing` |
-| Daily Rate | Currency | Pay rate |
-
-### Assignments Table
+### Crews Table
 
 | Field Name | Field Type | Notes |
 |-----------|-----------|-------|
-| Job | Link to Jobs | Links to Jobs table |
-| Crew Member | Link to Crew Members | Links to Crew Members table |
-| Date | Date | Assignment date |
-| Hours | Number | Hours worked |
-| Notes | Long Text | Daily notes |
+| crew_id | Auto Number | Primary key |
+| crew_name | Single Line Text | e.g., Jade, Ryan, Jamie |
+| crew_lead | Single Line Text | Lead person name |
+| contact_info | Single Line Text | Phone or email |
+| active | Checkbox | Currently active |
+| color_code | Single Line Text | Hex color for UI (e.g., #2E86AB) |
+
+**Pre-fill Crews table:**
+
+| crew_name | color_code | active |
+|-----------|-----------|--------|
+| Jade | #2E86AB | Yes |
+| Ryan | #A23B72 | Yes |
+| Jamie | #F18F01 | Yes |
+| Hedge & Shelter Trimmer | #6C757D | Yes |
 
 ---
 
@@ -52,11 +56,12 @@ This guide gets you from zero to a working crew management prototype as fast as 
 
 ### Option A: Manual Import (Easiest)
 
-1. Open your Excel spreadsheet with the 264 jobs
-2. In Airtable, click the **"+"** on the Jobs table toolbar
-3. Select **"CSV file"** import
-4. Map your Excel columns to the Airtable fields above
-5. Review and confirm the import
+1. Open `Motukarara_Delivery_Standardised_With_Addresses.xlsx`
+2. Save/export as CSV
+3. In Airtable, click the **"+"** on the Jobs table toolbar
+4. Select **"CSV file"** import
+5. Map your Excel columns to the Airtable fields above
+6. Review and confirm the import
 
 ### Option B: Scripted Import
 
@@ -65,8 +70,8 @@ This guide gets you from zero to a working crew management prototype as fast as 
 3. Run:
    ```bash
    cd Motu
-   npm install
-   node scripts/import-excel-to-airtable.js --file your-jobs.csv
+   npm install airtable csv-parser
+   node scripts/import-excel-to-airtable.js --file data/excel/your-jobs.csv
    ```
 
 ---
@@ -79,18 +84,20 @@ This guide gets you from zero to a working crew management prototype as fast as 
    - `data.records:read`
    - `data.records:write`
    - `schema.bases:read`
-4. Select your "Motu Crew Management" base
-5. Copy the token — you'll need it for the app
+4. Select your "Motukarara Crew Management" base
+5. Copy the token
 
 Get your Base ID:
 1. Go to [airtable.com/api](https://airtable.com/api)
-2. Click on your "Motu Crew Management" base
+2. Click on your "Motukarara Crew Management" base
 3. The Base ID starts with `app...` — copy it
 
 Create a `.env.local` file:
 ```bash
 AIRTABLE_API_KEY=pat...your_token_here
 AIRTABLE_BASE_ID=app...your_base_id_here
+NEXTAUTH_SECRET=any_random_string_here
+NEXTAUTH_URL=http://localhost:3000
 ```
 
 ---
@@ -102,7 +109,11 @@ AIRTABLE_BASE_ID=app...your_base_id_here
 git clone https://github.com/jabbaboth/Motu.git
 cd Motu
 
-# Install dependencies
+# Set up directory structure
+bash setup-repo.sh
+
+# Install dependencies (copy template first if no package.json yet)
+cp package.json.template package.json
 npm install
 
 # Copy environment variables
@@ -121,10 +132,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 After completing these steps:
 
-- A dashboard showing your jobs
-- Ability to view and edit job details
-- Crew member list
-- Basic assignment/scheduling view
+- A dashboard showing project stats (264 jobs, 498.5 hours, etc.)
+- Today's jobs for each crew
+- Ability to filter by crew and date
+- Tap/click to mark jobs as complete
+- Real-time progress tracking
+
+---
+
+## Daily User Flow (Crew Member)
+
+1. Open app on phone
+2. App shows today's date (auto-selected)
+3. Filter to their crew
+4. See list of assigned jobs
+5. Tap job card when arriving
+6. Tap again when complete
+7. Progress updates automatically
 
 ---
 

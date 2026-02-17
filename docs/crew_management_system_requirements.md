@@ -2,7 +2,11 @@
 
 ## Executive Summary
 
-Motu is a crew management system for a construction/trades business currently managing approximately 264 jobs. The system replaces manual Excel-based tracking with a modern web application for crew scheduling, job management, and operational oversight.
+Motu (Motukarara Powerline Vegetation Contract Crew Management System) is a web-based real-time crew tracking system for a powerline vegetation contract on Banks Peninsula, New Zealand. It replaces manual Excel-based tracking and a basic HTML tracker with a modern, mobile-friendly application.
+
+- **264 jobs** across 24 working days (Feb 9 - Mar 12, 2026)
+- **498.5 total work hours**
+- **4 crews** and **4 feeders** (MOTU 111-114)
 
 ---
 
@@ -10,63 +14,90 @@ Motu is a crew management system for a construction/trades business currently ma
 
 ### Core Problem
 
-- Managing 264+ jobs across multiple crews using spreadsheets is error-prone and inefficient
-- No real-time visibility into crew availability or job status
-- Scheduling conflicts are discovered too late
-- No centralized communication or reporting
+- The Excel spreadsheet (`Motukarara_Delivery_Standardised_With_Addresses.xlsx`) has 264 jobs but is not accessible to crews in the field
+- The legacy HTML tracker (`crew_tracking_calendar.html`) only covers 161 jobs with browser localStorage — no multi-device sync
+- No real-time visibility into crew progress or job completion
+- Crews work in rural areas on Banks Peninsula and need mobile access
+
+### Current Systems
+
+| System | Jobs | Storage | Sync | Crews |
+|--------|------|---------|------|-------|
+| Excel spreadsheet | 264 | Local file | None | 4 |
+| HTML tracker | 161 | localStorage | None | 3 |
+| **Target app** | **264+** | **Airtable** | **Real-time** | **4** |
+
+**Decision:** The Excel spreadsheet with 264 jobs is the source of truth.
 
 ### Key Users
 
-1. **Business Owner / Manager** — Oversees all jobs, assigns crews, monitors progress
-2. **Foremen / Team Leads** — View their assignments, update job status in the field
-3. **Office Staff** — Data entry, reporting, client communication
+1. **Crew Members (Field)** — View assignments, mark jobs complete on their phones
+2. **Crew Leads (Jade, Ryan, Jamie)** — Manage their crew's daily work
+3. **Managers** — Overview of all crews, progress tracking, reporting
+
+---
+
+## Project Statistics
+
+- **Total Jobs:** 264
+- **Total Work Hours:** 498.5
+- **Working Days:** 24
+- **Crews:**
+  - Jade's crew
+  - Ryan's crew
+  - Jamie's crew
+  - Hedge & Shelter Trimmer (specialized)
+- **Feeders:** MOTU 111, 112, 113, 114
+- **Location:** Banks Peninsula, New Zealand
 
 ---
 
 ## Functional Requirements
 
-### 1. Job Management
+### 1. Job Management (Phase 1 — Must Have)
 
-- **Create/Edit/Archive jobs** with all relevant details
-- **Job statuses:** Not Started, In Progress, On Hold, Completed, Cancelled
-- **Job details:** Client info, address, dates, priority, budget, notes
-- **Search and filter** jobs by status, client, date range, priority
-- **Job timeline view** — visual overview of job schedules
+- View all 264 jobs in database
+- Filter by date, crew, feeder, and status
+- Mark jobs as complete with tap/click
+- Job details: address, feeder, crew, duration, spans, start/end time
+- Status tracking: Pending, In Progress, Completed
 
-### 2. Crew Management
+### 2. Crew Views (Phase 1 — Must Have)
 
-- **Crew member profiles** with contact info, skills, certifications, pay rates
-- **Availability tracking** — who is available on any given day
-- **Skill matching** — find crew members with specific skills for a job
-- **Status tracking:** Available, On Job, On Leave, Inactive
+- Filter jobs by crew (Jade, Ryan, Jamie, Hedge & Shelter Trimmer)
+- Daily crew sheet — who goes where today
+- Auto-select today's date on load
+- Color-coded crew assignments
 
-### 3. Scheduling & Assignments
+### 3. Dashboard (Phase 1 — Must Have)
 
-- **Assign crew to jobs** by date
-- **Calendar view** — see all assignments across crews and jobs
-- **Conflict detection** — prevent double-booking crew members
-- **Drag-and-drop scheduling** (nice to have)
-- **Recurring assignments** for ongoing jobs
+- Overall statistics: total jobs, completed, remaining
+- Hours worked vs. allocated
+- Completion percentage
+- Crew-by-crew progress
+- Feeder-by-feeder breakdown
 
-### 4. Daily Operations
+### 4. Real-Time Sync (Phase 1 — Must Have)
 
-- **Daily crew sheet** — who is going where today
-- **Time tracking** — log hours per crew member per job
-- **Daily notes** — field updates and observations
-- **Photo uploads** — job site documentation (future phase)
+- Changes visible within 1 second across devices
+- Works on iOS and Android browsers
+- Mobile-responsive design with large tap targets
 
-### 5. Reporting
+### 5. Reporting (Phase 2 — Nice to Have)
 
-- **Job summary reports** — status overview across all jobs
-- **Crew utilization** — how busy is each crew member
-- **Hours reports** — hours logged per job, per crew member, per date range
-- **Export to CSV/Excel** for accounting
+- Jobs completed per day/week
+- Crew utilization metrics
+- Average time per job
+- Excel/CSV export
+- Email summaries
 
-### 6. Notifications (Future Phase)
+### 6. Advanced Features (Phase 2 — Nice to Have)
 
-- Schedule change alerts
-- Job status update notifications
-- Crew availability reminders
+- User authentication
+- Photo upload for completed jobs
+- GPS location tracking
+- Offline mode with sync
+- Push notifications
 
 ---
 
@@ -74,22 +105,24 @@ Motu is a crew management system for a construction/trades business currently ma
 
 ### Performance
 
-- Page load under 2 seconds
-- Support 10+ concurrent users
-- Handle 500+ jobs without performance degradation
+- Initial load: < 2 seconds
+- Job status update: < 500ms
+- Support 500+ jobs without lag
+- Must work on 3G networks (rural Banks Peninsula)
 
 ### Security
 
-- User authentication (email + password)
-- Role-based access control (Admin, Manager, Crew)
-- HTTPS everywhere
 - Environment variables for API keys (never committed to repo)
+- HTTPS everywhere
+- Validate all user input
+- Never commit `.env` files
 
 ### Availability
 
-- 99% uptime target
-- Mobile-responsive design (crews use phones in the field)
-- Works on modern browsers (Chrome, Safari, Firefox, Edge)
+- Must work on iOS Safari and Android Chrome
+- Mobile-first design (80% of usage on phones)
+- Large tap targets, minimal text entry
+- Print-friendly daily crew sheet
 
 ---
 
@@ -97,107 +130,179 @@ Motu is a crew management system for a construction/trades business currently ma
 
 | Component | Technology | Rationale |
 |-----------|-----------|-----------|
-| Frontend | Next.js (React) | Modern, fast, great DX, easy deployment |
-| Backend/API | Next.js API Routes | Keeps everything in one project |
-| Database | Airtable | Easy to start, visual interface, API included |
+| Frontend | Next.js 14 (React) with TypeScript | Modern, fast, SSR for quick loads |
+| Backend/API | Next.js API Routes | Single project, no separate backend |
+| Database | Airtable (REST API) | Easy setup, visual interface, API included |
 | Hosting | Vercel | Free tier, auto-deploys from GitHub |
-| Authentication | NextAuth.js | Simple auth for Next.js apps |
-| Styling | Tailwind CSS | Rapid UI development, responsive by default |
+| Styling | Tailwind CSS | Rapid UI, mobile-first by default |
+| Auth (Phase 2) | NextAuth.js | Simple auth for Next.js |
 
 ### Why Airtable?
 
-- Already a spreadsheet-like interface (familiar for Excel users)
+- Spreadsheet-like interface (familiar for Excel users)
 - Built-in API — no database setup needed
 - Visual interface for data management alongside the app
-- Free tier supports the initial scale
-- Can migrate to PostgreSQL later if needed
+- Free tier: 1,200 records (we have 264 — well within limit)
+- Airtable API rate limit: 5 requests/second
 
 ### Future Migration Path
 
 If the system outgrows Airtable:
-1. Airtable -> Supabase (PostgreSQL) — straightforward migration
-2. Add real-time features with Supabase subscriptions
-3. Scale to unlimited records and users
+1. Airtable -> Supabase (PostgreSQL)
+2. Add real-time subscriptions
+3. Scale to unlimited records
 
 ---
 
 ## Data Model
 
-### Jobs
-```
-- id (auto)
-- name (string)
-- client (string)
-- address (text)
-- status (enum: not_started, in_progress, on_hold, completed, cancelled)
-- start_date (date)
-- end_date (date)
-- priority (enum: low, medium, high, urgent)
-- budget (currency)
-- notes (text)
-- created_at (datetime)
-- updated_at (datetime)
-```
+### Jobs Table
 
-### Crew Members
 ```
-- id (auto)
-- name (string)
-- role (enum: foreman, labourer, operator, subcontractor)
-- phone (string)
-- email (string)
-- status (enum: available, on_job, on_leave, inactive)
-- skills (array of strings)
-- daily_rate (currency)
-- emergency_contact (string)
-- notes (text)
-```
-
-### Assignments
-```
-- id (auto)
-- job_id (foreign key -> Jobs)
-- crew_member_id (foreign key -> Crew Members)
+- job_id (auto, primary key)
 - date (date)
-- hours (number)
-- status (enum: scheduled, completed, cancelled)
+- crew_name (enum: Jade, Ryan, Jamie, Hedge & Shelter Trimmer)
+- full_address (text)
+- address_number (text)
+- feeder (enum: MOTU 111, MOTU 112, MOTU 113, MOTU 114)
+- job_duration_hours (number, decimal)
+- spans (number)
+- start_time (text)
+- end_time (text)
+- status (enum: Pending, In Progress, Completed)
+- completion_date (date)
+- completed_by (text)
 - notes (text)
+- additional_crews_required (boolean)
 ```
 
-### Users (Authentication)
+### Crews Table
+
 ```
-- id (auto)
-- email (string)
-- name (string)
-- role (enum: admin, manager, crew)
-- created_at (datetime)
+- crew_id (auto, primary key)
+- crew_name (text)
+- crew_lead (text)
+- contact_info (text)
+- active (boolean)
+- color_code (text, hex)
 ```
+
+### Pre-filled Crew Data
+
+| crew_name | color_code | active |
+|-----------|-----------|--------|
+| Jade | #2E86AB | true |
+| Ryan | #A23B72 | true |
+| Jamie | #F18F01 | true |
+| Hedge & Shelter Trimmer | #6C757D | true |
+
+---
+
+## UI/UX Design
+
+### Color Scheme
+
+**Crew Colors:**
+- Jade: #2E86AB (teal)
+- Ryan: #A23B72 (purple)
+- Jamie: #F18F01 (orange)
+- Hedge & Shelter Trimmer: #6C757D (grey)
+
+**Feeder Colors:**
+- MOTU 111: #ffa07a20 (light orange)
+- MOTU 112: #ff6b6b20 (light red)
+- MOTU 113: #45b7d120 (light blue)
+- MOTU 114: #4ecdc420 (light teal)
+
+**Status Colors:**
+- Completed: #d4edda (light green)
+- In Progress: light yellow
+- Pending: white
+
+### Views
+
+1. **Dashboard** — Overall statistics and KPIs
+2. **Calendar View** — Daily job lists with filtering by date/crew
+3. **Crew Summary** — Individual crew performance
+
+### Daily User Flow (Crew Member)
+
+1. Open app on phone
+2. App shows today's date (auto-selected)
+3. Filter to their crew
+4. See list of assigned jobs
+5. Tap job card when arriving
+6. Tap again when complete
+7. Progress updates automatically
+
+### Daily Manager Flow
+
+1. Open app on desktop/tablet
+2. View dashboard statistics
+3. Check crew progress
+4. Export reports if needed
+5. Adjust assignments in Airtable
+
+---
+
+## Metrics to Track
+
+### Project Metrics
+
+- Jobs completed / total
+- Spans completed / total
+- Hours worked / allocated
+- Completion percentage
+- Average time per job
+
+### System Metrics
+
+- Daily active users
+- Jobs marked complete per day
+- Page load time
+- API response time
+- Error rate
 
 ---
 
 ## Phased Delivery
 
-### Phase 1 — Foundation (Week 1)
+### Phase 1 — Core (Week 1-2)
+
 - Project setup (Next.js, Airtable, Vercel)
-- Job CRUD (create, read, update, delete)
-- Crew member CRUD
-- Basic list views with search/filter
+- Import 264 jobs from Excel
+- Job list with filtering (date, crew, feeder, status)
+- Tap-to-complete functionality
+- Dashboard with real-time stats
+- Mobile-responsive design
+- Deploy to Vercel
 
-### Phase 2 — Scheduling (Week 2)
-- Assignment management
-- Calendar view
-- Daily crew sheet
-- Conflict detection
+### Phase 2 — Enhanced (Week 3-4)
 
-### Phase 3 — Operations (Week 3-4)
-- Time tracking / hours logging
-- Basic reporting
-- CSV export
 - User authentication
-
-### Phase 4 — Polish (Ongoing)
-- Drag-and-drop scheduling
+- Advanced reporting and exports
 - Photo uploads
-- Notifications
-- Advanced reporting and dashboards
-- Mobile app (React Native or PWA)
+- Offline mode
+- Push notifications
+
+---
+
+## Known Issues & Decisions
+
+### Data Discrepancy
+
+- HTML version: 161 jobs (Feb 12-26)
+- Excel version: 264 jobs (Feb 9-Mar 12)
+- **Decision:** Use Excel as source of truth
+
+### Crew Naming
+
+- Excel has "Jade's crew" format
+- Standardize to "Jade" in database
+- Display as "Jade's Crew" in UI
+
+### Feeder Assignment
+
+- Not all jobs have feeder info in Excel
+- Will need to assign MOTU codes during import
+- Can update in Airtable after import

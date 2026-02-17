@@ -4,29 +4,41 @@ This file provides context and conventions for AI assistants (such as Claude) wo
 
 ## Project Overview
 
-**Motu** is a crew management system for a construction/trades business, built under the `jabbaboth` GitHub organization. The system manages approximately 264 jobs, replacing manual Excel-based tracking with a modern web application for crew scheduling, job management, and operational oversight.
+**Motu** (Motukarara Powerline Vegetation Contract Crew Management System) is a web-based real-time crew tracking and project management system for the `jabbaboth` GitHub organization.
+
+- **Location:** Banks Peninsula, New Zealand
+- **Timeline:** Feb 9 - Mar 12, 2026 (24 working days)
+- **Total Jobs:** 264
+- **Total Work Hours:** 498.5
+- **Crews:** Jade's crew, Ryan's crew, Jamie's crew, Hedge & Shelter Trimmer
+- **Feeders:** MOTU 111, 112, 113, 114
+
+### Current State
+
+- **Legacy system:** `crew_tracking_calendar.html` — 161 jobs hardcoded, browser localStorage only, no multi-device sync, limited to 3 crews
+- **Data source:** `Motukarara_Delivery_Standardised_With_Addresses.xlsx` — 264 jobs (source of truth), covers full timeline, includes 4 crews
+
+### Target System
+
+- Real-time sync, mobile-responsive, offline-capable
+- 3-4 field crews + managers
+- Budget: $20/month (Airtable) + $0 (Vercel hosting)
 
 ### Tech Stack
 
 - **Framework:** Next.js 14+ (App Router) with TypeScript
 - **Database:** Airtable (via REST API)
 - **Styling:** Tailwind CSS
-- **Authentication:** NextAuth.js
+- **Authentication:** NextAuth.js (Phase 2)
 - **Deployment:** Vercel
-
-### Key Entities
-
-- **Jobs** — Construction projects with status, client, dates, priority
-- **Crew Members** — Workers with roles, skills, availability, pay rates
-- **Assignments** — Links crew members to jobs on specific dates
 
 ## Repository Structure
 
 ```
 Motu/
+├── CLAUDE.md                          # This file — AI assistant guide
 ├── ACTION_PLAN.md                     # Project roadmap with three build paths
 ├── QUICK_START.md                     # 1-hour getting started guide
-├── CLAUDE.md                          # This file — AI assistant guide
 ├── setup-repo.sh                      # Automated directory structure setup
 ├── package.json.template              # Pre-configured dependencies
 ├── docs/
@@ -36,12 +48,60 @@ Motu/
 │   └── github_setup_guide.md          # Repo organization & deployment
 ├── scripts/
 │   └── import-excel-to-airtable.js    # CSV-to-Airtable data import tool
-└── src/                               # Application code (created during build)
+├── data/                              # Source data
+│   ├── excel/                         # Excel files
+│   ├── schemas/                       # Data schemas
+│   └── backups/                       # Regular exports
+├── legacy/                            # Current HTML-based system
+│   └── crew_tracking_calendar.html
+└── web-app/                           # Next.js application
     ├── app/                           # Next.js App Router pages
     ├── components/                    # React components
     ├── lib/                           # Service layer (Airtable API)
-    └── types/                         # TypeScript type definitions
+    ├── hooks/                         # Custom React hooks
+    └── package.json                   # Dependencies
 ```
+
+## Database Schema
+
+### Jobs Table
+
+| Field | Type | Notes |
+|-------|------|-------|
+| job_id | Primary key | Auto-generated |
+| date | Date | Scheduled date |
+| crew_name | Single Select | Jade, Ryan, Jamie, Hedge & Shelter Trimmer |
+| full_address | Text | Job site address |
+| address_number | Text | Street number |
+| feeder | Single Select | MOTU 111, 112, 113, 114 |
+| job_duration_hours | Number | Estimated hours |
+| spans | Number | Number of spans |
+| start_time | Text | Planned start |
+| end_time | Text | Planned end |
+| status | Single Select | Pending, In Progress, Completed |
+| completion_date | Date | When marked complete |
+| completed_by | Text | Who completed it |
+| notes | Long Text | Additional details |
+| additional_crews_required | Checkbox | Needs extra crew |
+
+### Crews Table
+
+| Field | Type | Notes |
+|-------|------|-------|
+| crew_id | Primary key | Auto-generated |
+| crew_name | Text | Jade, Ryan, Jamie, etc. |
+| crew_lead | Text | Lead person name |
+| contact_info | Text | Phone/email |
+| active | Checkbox | Currently active |
+| color_code | Text | UI color hex code |
+
+## UI Design
+
+### Color Scheme
+
+- **Crew colors:** Jade (#2E86AB teal), Ryan (#A23B72 purple), Jamie (#F18F01 orange)
+- **Feeder colors:** MOTU 112 (#ff6b6b20 light red), MOTU 114 (#4ecdc420 light teal), MOTU 113 (#45b7d120 light blue), MOTU 111 (#ffa07a20 light orange)
+- **Status colors:** Completed (#d4edda light green), In Progress (light yellow), Pending (white)
 
 ## Getting Started
 
@@ -75,9 +135,9 @@ See `QUICK_START.md` for the full getting-started guide.
 
 ### Commit Messages
 
-- Use clear, imperative-mood messages (e.g., "Add user authentication module")
+- Use clear, imperative-mood messages (e.g., "Add crew calendar view")
 - Keep the subject line under 72 characters
-- Reference issue numbers when applicable (e.g., "Fix login timeout (#42)")
+- Reference issue numbers when applicable (e.g., "Fix job filter (#42)")
 
 ### Pull Requests
 
@@ -112,10 +172,28 @@ See `QUICK_START.md` for the full getting-started guide.
 
 ## Key Architectural Decisions
 
-1. **Airtable as database** — Chosen for easy setup, visual interface, and built-in API. Migration path to PostgreSQL (Supabase) exists if the system outgrows Airtable.
-2. **Next.js App Router** — Server-side rendering for fast page loads, API routes in the same project for simplicity.
-3. **Service layer pattern** — All Airtable calls go through `src/lib/` service modules, not called directly from components.
-4. **Mobile-first design** — Crew members use phones on job sites, so the UI must work well on small screens.
+1. **Airtable as database** — Easy setup, visual interface, built-in API. Free tier supports 1,200 records (we have 264). Migration path to PostgreSQL (Supabase) exists.
+2. **Next.js App Router** — SSR for fast loads, API routes in the same project.
+3. **Service layer pattern** — All Airtable calls go through `lib/` service modules, not called directly from components.
+4. **Mobile-first design** — 80% of usage will be on phones in the field. Large tap targets, minimal text entry.
+5. **Excel as source of truth** — 264 jobs from the Excel file (not 161 from the legacy HTML version).
+
+## Critical Success Factors
+
+1. **Mobile-First:** 80% of usage on phones
+2. **Simple UX:** Large tap targets, minimal text entry
+3. **Real-Time Sync:** Changes visible within 1 second
+4. **Reliability:** Must work in rural areas with spotty connection
+5. **Speed:** App must load in under 2 seconds
+6. **Data Integrity:** Never lose completion records
+
+## Performance Requirements
+
+- Initial load: < 2 seconds
+- Job status update: < 500ms
+- Support 500+ jobs without lag
+- Work on 3G networks
+- Airtable API: 5 requests/second rate limit
 
 ## AI Assistant Guidelines
 
@@ -128,3 +206,4 @@ When working in this repository, AI assistants should:
 5. **Update this file** — When new conventions, tools, or architecture decisions are established, update this CLAUDE.md accordingly
 6. **Test changes** — Run existing tests after making changes; add tests for new functionality
 7. **Respect existing patterns** — Follow the conventions already established in the codebase
+8. **Reference docs** — Use ACTION_PLAN.md for direction, developer_prompt.md for specs, implementation_guide.md for steps
