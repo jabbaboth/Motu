@@ -36,7 +36,14 @@ async function JobsContent({ searchParams }: JobsPageProps) {
     );
   }
 
-  return <JobList initialJobs={jobs} />;
+  const params = new URLSearchParams();
+  if (filters.date) params.set("date", filters.date);
+  if (filters.crew) params.set("crew", filters.crew);
+  if (filters.feeder) params.set("feeder", filters.feeder);
+  if (filters.status) params.set("status", filters.status);
+  const pollUrl = `/api/jobs?${params.toString()}`;
+
+  return <JobList initialJobs={jobs} pollUrl={pollUrl} />;
 }
 
 export default function JobsPage({ searchParams }: JobsPageProps) {

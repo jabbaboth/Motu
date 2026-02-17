@@ -71,7 +71,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         {todaysJobs.length > 0 ? (
-          <JobList initialJobs={todaysJobs} compact />
+          <JobList initialJobs={todaysJobs} compact pollUrl={`/api/jobs?date=${today}`} />
         ) : (
           <div className="card p-6 text-center text-gray-500">
             No jobs scheduled for today.
