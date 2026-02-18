@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateJobStatus, getJobById } from "@/lib/airtable";
 import { JobStatus } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } }
